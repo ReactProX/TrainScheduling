@@ -6,13 +6,14 @@ var firebaseConfig = {
     storageBucket: "trainscheduler-26594.appspot.com",
     messagingSenderId: "560522279746",
     appId: "1:560522279746:web:37c259671764754b"
-  };
- 
-  firebase.initializeApp(firebaseConfig);
+};
+
+firebase.initializeApp(firebaseConfig);
 
 var database = firebase.database();
 
-$("#submit").on("click", function(){
+
+$("#submit").on("click", function () {
     //get input data
     var trainName = $("#trainName").val().trim();
     var destination = $("#destination").val().trim();
@@ -27,27 +28,40 @@ $("#submit").on("click", function(){
 
     //build json object to push into firebase
     var newTrain = {
-        trainName : trainName,
-        destination : destination,
-        trainTime : trainTime,
-        frequency : frequency,
+        trainName: trainName,
+        destination: destination,
+        trainTime: trainTime,
+        frequency: frequency,
     }
 
     console.log(newTrain);
-
-    database.ref().push(newTrain);
+    //validates that all fields have been entered
+    if((!newTrain.trainName) || (!newTrain.destination) || (!newTrain.trainTime) || (!newTrain.frequency)){
+        
+    }
+    else{
+        database.ref().push(newTrain);
+    };
 });
 
 //add new html to page when a child is added to the firebase
-database.ref().on("child_added", function(childSnapchat){
+database.ref().on("child_added", function (childSnapchat) {
     console.log(childSnapchat.val());
-    
+
     //obtain information from database
     var trainName = childSnapchat.val().trainName;
     var destination = childSnapchat.val().destination;
+    var trainTime = childSnapchat.val().trainTime;
     var frequency = childSnapchat.val().frequency;
-    var nextTrain = "hard math";
-    var minutesAway = "other hard math";
+    
+    //do time math
+    // var currentTime = moment().format("HH:mm");
+    var convertedFirstTime = moment(trainTime, "HH:mm").subtract(1 , "years");
+    var diffTime = moment().diff(moment(convertedFirstTime), "minutes");
+    var timeMod = diffTime % frequency;
+    var minutesAway = frequency - timeMod;
+    var nextTrain = moment().add(minutesAway, "minutes").format("HH:mm");
+    
 
     //build new table row with data from database
     var newRow = $("<tr>");
